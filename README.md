@@ -26,6 +26,29 @@ entry := &sigmalite.LogEntry{
 isMatch := rule.Detection.Matches(entry, nil)
 ```
 
+### Parsing TShark JSON logs
+
+If you're collecting packets with [`tshark`](https://www.wireshark.org/docs/man-pages/tshark.html) and export them with `-T json`,
+use `ParseTSharkJSON` to turn the output into a slice of `LogEntry` values that can be matched against Sigma rules:
+
+```go
+data, err := os.ReadFile("packets.json")
+if err != nil {
+  return err
+}
+
+entries, err := sigmalite.ParseTSharkJSON(data)
+if err != nil {
+  return err
+}
+
+for _, entry := range entries {
+  if rule.Detection.Matches(entry, nil) {
+    fmt.Println("matched packet", entry.Fields["frame.number"])
+  }
+}
+```
+
 [Sigma detection format]: https://sigmahq.io/
 
 ## Install
@@ -33,6 +56,32 @@ isMatch := rule.Detection.Matches(entry, nil)
 ```shell
 go get github.com/runreveal/sigmalite
 ```
+
+## Command-line usage
+
+Build the `sigmalite` command to evaluate Sigma rules against local log files:
+
+```shell
+go build ./cmd/sigmalite
+```
+
+Run the executable by supplying one or more `-rule` files and an `-input` log file. The
+`-input-format` flag selects how the log file is parsed:
+
+```shell
+./sigmalite \
+  -rule rules/network.yaml \
+  -rule rules/process.yaml \
+  -input packets.json \
+  -input-format tshark-json
+```
+
+Each match is emitted as a JSON object describing the rule, message, and flattened
+fields. Additional formats are available:
+
+* `tshark-json` (default): parse logs produced by `tshark -T json`
+* `jsonl`: parse newline-delimited JSON objects where each object represents a log entry
+* `raw`: treat each non-empty line as a message-only log entry
 
 ## Rules
 
