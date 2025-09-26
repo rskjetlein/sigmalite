@@ -26,6 +26,29 @@ entry := &sigmalite.LogEntry{
 isMatch := rule.Detection.Matches(entry, nil)
 ```
 
+### Parsing TShark JSON logs
+
+If you're collecting packets with [`tshark`](https://www.wireshark.org/docs/man-pages/tshark.html) and export them with `-T json`,
+use `ParseTSharkJSON` to turn the output into a slice of `LogEntry` values that can be matched against Sigma rules:
+
+```go
+data, err := os.ReadFile("packets.json")
+if err != nil {
+  return err
+}
+
+entries, err := sigmalite.ParseTSharkJSON(data)
+if err != nil {
+  return err
+}
+
+for _, entry := range entries {
+  if rule.Detection.Matches(entry, nil) {
+    fmt.Println("matched packet", entry.Fields["frame.number"])
+  }
+}
+```
+
 [Sigma detection format]: https://sigmahq.io/
 
 ## Install
