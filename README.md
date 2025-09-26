@@ -57,6 +57,32 @@ for _, entry := range entries {
 go get github.com/runreveal/sigmalite
 ```
 
+## Command-line usage
+
+Build the `sigmalite` command to evaluate Sigma rules against local log files:
+
+```shell
+go build ./cmd/sigmalite
+```
+
+Run the executable by supplying one or more `-rule` files and an `-input` log file. The
+`-input-format` flag selects how the log file is parsed:
+
+```shell
+./sigmalite \
+  -rule rules/network.yaml \
+  -rule rules/process.yaml \
+  -input packets.json \
+  -input-format tshark-json
+```
+
+Each match is emitted as a JSON object describing the rule, message, and flattened
+fields. Additional formats are available:
+
+* `tshark-json` (default): parse logs produced by `tshark -T json`
+* `jsonl`: parse newline-delimited JSON objects where each object represents a log entry
+* `raw`: treat each non-empty line as a message-only log entry
+
 ## Rules
 
 Rules are written in [YAML][] format
