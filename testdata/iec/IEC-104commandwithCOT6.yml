@@ -1,0 +1,40 @@
+title: IEC-104 command with COT=6 (activation) to port 2404 from non-listed operators
+id: a5a47c32-cc94-4732-a574-9e0a7d862718
+status: experimental
+logsource:
+  product: network
+  service: tshark-json
+detection:
+  port2404:
+    tcp.dstport: "2404"
+  cmd_old:
+    104asdu.typeid|re: "^(45|46)$"
+  cmd_new:
+    iec60870_asdu.typeid|re: "^(45|46)$"
+  cot_old:
+    104asdu.causetx: "6"
+  cot_new:
+    iec60870_asdu.causetx: "6"
+  # Maintain this allowlist locally
+  non_hmi:
+    ip.src|cidr:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+  condition: port2404 and (cmd_old or cmd_new) and (cot_old or cot_new) and non_hmi
+fields:
+  - frame.number
+  - ip.src
+  - ip.dst
+  - 104asdu.causetx
+  - iec60870_asdu.causetx
+falsepositives:
+  - Legitimate commands from authorized engineering workstations; maintain an allowlist
+level: medium
+tags:
+  - detection.protocol.iec104
+  - detection.attack.ics
+references:
+  - https://www.wireshark.org/docs/dfref/1/104asdu.html
+message:
+  - "something"

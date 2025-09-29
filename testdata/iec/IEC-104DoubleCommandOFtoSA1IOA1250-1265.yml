@@ -1,0 +1,48 @@
+title: IEC-104 Double Command OFF to SA=1 IOA 1250–1265 (Industroyer2 pattern)
+id: c2f23d9f-debd-4441-92bf-386d56956d2c
+status: experimental
+logsource:
+  product: network
+  service: tshark-json
+detection:
+  port2404:
+    tcp.dstport: "2404"
+  dc_old:
+    104asdu.typeid: "46"
+  dc_new:
+    iec60870_asdu.typeid: "46"
+  sa1_old:
+    104asdu.addr: "1"
+  sa1_new:
+    iec60870_asdu.addr: "1"
+  ioa_range_old:
+    104asdu.ioa|re: "^(125[0-9]|126[0-5])$"
+  ioa_range_new:
+    iec60870_asdu.ioa|re: "^(125[0-9]|126[0-5])$"
+  off_old:
+    104asdu.dco.on: "0"
+  off_new:
+    iec60870_asdu.dco.on: "0"
+  condition: port2404 and (dc_old or dc_new) and (sa1_old or sa1_new) and (ioa_range_old or ioa_range_new) and (off_old or off_new)
+fields:
+  - frame.number
+  - ip.src
+  - ip.dst
+  - 104asdu.ioa
+  - iec60870_asdu.ioa
+  - 104asdu.addr
+  - iec60870_asdu.addr
+  - 104asdu.dco.on
+  - iec60870_asdu.dco.on
+falsepositives:
+  - Maintenance or test operations intentionally opening breakers at those IOAs
+level: high
+tags:
+  - detection.attack.ics
+  - detection.protocol.iec104
+  - detection.industroyer2
+  - attack.a0005
+  - attack.a5003
+references:
+  - https://www.netresec.com/?page=Blog&month=2022-04&post=Industroyer2-IEC-104-Analysis
+
